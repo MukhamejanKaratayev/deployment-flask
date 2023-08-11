@@ -37,13 +37,17 @@ y_n_map = {'yes': 1, 'no': 0}
 
 treshold = 0.281
 
+@app.route('/', methods=['GET'])
+def home():
+    return 'Welcome to Churn Prediction API'
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
     
-    customer = request.get_json()
+    customers = request.get_json()
 
-    df_input = pd.DataFrame(customer, index=[0])
+    df_input = pd.DataFrame(customers)
     scaler = MinMaxScaler()
 
     df_input[numerical] = scaler.fit_transform(df_input[numerical])
@@ -59,7 +63,9 @@ def predict():
     y_pred = model.predict_proba(X)[:, 1]
     churn_descision = (y_pred >= treshold)
 
-    result = {'churn_probability': float(y_pred[0]), 'churn': bool(churn_descision[0])}
+    result = []
+    for i in range(len(customers)):
+        result.append({'customerid': customers[i]['customerid'], 'churn': bool(churn_descision[i]), 'churn_probability': float(y_pred[i])})
 
     return jsonify(result)
 
